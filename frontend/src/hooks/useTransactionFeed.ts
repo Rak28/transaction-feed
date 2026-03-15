@@ -12,47 +12,29 @@ export function useTransactionFeed() {
   const wsRef = useRef<WebSocket | null>(null);
   const pausedRef = useRef(false);
   const bufferRef = useRef<Transaction[]>([]);
-
   pausedRef.current = paused;
 
   const connect = useCallback(() => {
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
-
     ws.onopen = () => setConnected(true);
-    ws.onclose = () => {
-      setConnected(false);
-      setTimeout(connect, 2000); // auto-reconnect
-    };
-
+    ws.onclose = () => { setConnected(false); setTimeout(connect, 2000); };
     ws.onmessage = (e) => {
       const msg: WSMessage = JSON.parse(e.data);
-      if (msg.type === 'stats') {
-        setStats(msg);
-      } else if (msg.type === 'history') {
-        setTransactions(msg.data);
-      } else if (msg.type === 'transaction') {
-        if (pausedRef.current) {
-          bufferRef.current.push(msg.data);
-        } else {
-          setTransactions(prev => [msg.data, ...prev].slice(0, MAX_TRANSACTIONS));
-        }
+      if (msg.type === 'stats') { setStats(msg); }
+      else if (msg.type === 'history') { setTransactions(msg.data); }
+      else if (msg.type === 'transaction') {
+        if (pausedRef.current) { bufferRef.current.push(msg.data); }
+        else { setTransactions(prev => [msg.data, ...prev].slice(0, MAX_TRANSACTIONS)); }
       }
     };
     return ws;
   }, []);
 
-  useEffect(() => {
-    const ws = connect();
-    return () => ws.close();
-  }, [connect]);
+  useEffect(() => { const ws = connect(); return () => ws.close(); }, [connect]);
 
   const togglePause = () => {
-    if (paused) {
-      // Flush buffer
-      setTransactions(prev => [...bufferRef.current, ...prev].slice(0, MAX_TRANSACTIONS));
-      bufferRef.current = [];
-    }
+    if (paused) { setTransactions(prev => [...bufferRef.current, ...prev].slice(0, MAX_TRANSACTIONS)); bufferRef.current = []; }
     setPaused(p => !p);
   };
 
