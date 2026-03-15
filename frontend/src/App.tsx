@@ -4,10 +4,7 @@ import { Transaction } from './types';
 import './App.css';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-
-const STATUS_COLORS: Record<string, string> = {
-  approved: '#22c55e', pending: '#f59e0b', declined: '#ef4444'
-};
+const STATUS_COLORS: Record<string, string> = { approved: '#22c55e', pending: '#f59e0b', declined: '#ef4444' };
 
 function TransactionRow({ tx }: { tx: Transaction }) {
   return (
@@ -31,7 +28,6 @@ function TransactionRow({ tx }: { tx: Transaction }) {
 export default function App() {
   const { transactions, stats, connected, paused, togglePause } = useTransactionFeed();
   const [filter, setFilter] = useState<string>('all');
-
   const filtered = filter === 'all' ? transactions : transactions.filter(t => t.status === filter);
 
   return (
@@ -39,20 +35,14 @@ export default function App() {
       <header className="header">
         <div className="header-left">
           <span className="logo">⚡</span>
-          <div>
-            <h1>Transaction Feed</h1>
-            <p className="subtitle">Real-time Kafka stream · 4 partitions</p>
-          </div>
+          <div><h1>Transaction Feed</h1><p className="subtitle">Real-time Kafka stream · 4 partitions</p></div>
         </div>
         <div className="header-right">
           <div className={`status-dot ${connected ? 'connected' : 'disconnected'}`} />
           <span className="status-text">{connected ? 'Live' : 'Reconnecting...'}</span>
-          <button className={`btn-pause ${paused ? 'paused' : ''}`} onClick={togglePause}>
-            {paused ? `▶ Resume${transactions.length ? '' : ''}` : '⏸ Pause'}
-          </button>
+          <button className={`btn-pause ${paused ? 'paused' : ''}`} onClick={togglePause}>{paused ? '▶ Resume' : '⏸ Pause'}</button>
         </div>
       </header>
-
       {stats && (
         <div className="stats-bar">
           <div className="stat"><div className="stat-label">Messages</div><div className="stat-value">{stats.message_count.toLocaleString()}</div></div>
@@ -63,21 +53,17 @@ export default function App() {
           <div className="stat"><div className="stat-label">Partitions</div><div className="stat-value">{stats.partitions}</div></div>
         </div>
       )}
-
       <div className="feed-controls">
         <div className="filter-pills">
-          {['all', 'approved', 'pending', 'declined'].map(f => (
+          {['all','approved','pending','declined'].map(f => (
             <button key={f} className={`pill ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
           ))}
         </div>
         <span className="tx-count">{filtered.length} transactions</span>
         {paused && <span className="paused-badge">⏸ PAUSED</span>}
       </div>
-
       <div className="feed">
-        {filtered.length === 0 && (
-          <div className="empty">Waiting for transactions...</div>
-        )}
+        {filtered.length === 0 && <div className="empty">Waiting for transactions...</div>}
         {filtered.map(tx => <TransactionRow key={tx.id} tx={tx} />)}
       </div>
     </div>
